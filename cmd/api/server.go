@@ -1,24 +1,31 @@
 package api
 
 import (
-	data "github.com/dubass83/go-micro-auth/data/sqlc"
+	"github.com/rs/zerolog/log"
+
+	"github.com/dubass83/go-micro-logger/data"
 	"github.com/dubass83/go-micro-logger/util"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type Server struct {
-	Router *chi.Mux
-	Db     data.Store
-	Config util.Config
+	Router  *chi.Mux
+	MongoDB *mongo.Client
+	Config  util.Config
 }
 
-func CreateNewServer(config util.Config, store data.Store) *Server {
+func CreateNewServer(config util.Config) *Server {
+	client, err := data.New(config)
+	if err != nil {
+		log.Fatal().Err(err).Msg("mongodb connection failed")
+	}
 	s := &Server{
-		Router: chi.NewRouter(),
-		Db:     store,
-		Config: config,
+		Router:  chi.NewRouter(),
+		MongoDB: client,
+		Config:  config,
 	}
 	return s
 }

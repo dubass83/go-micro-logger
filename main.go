@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"net/http"
 	"os"
 
+	"github.com/dubass83/go-micro-logger/cmd/api"
 	"github.com/dubass83/go-micro-logger/util"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -29,31 +32,24 @@ func main() {
 	// ctx, stop := signal.NotifyContext(context.Background(), interaptSignals...)
 	// defer stop()
 
-	// connPool, err := pgxpool.NewWithConfig(context.Background(), poolConfig(conf))
-	// if err != nil {
-	// 	log.Fatal().
-	// 		Err(err).
-	// 		Msg("cannot validate db connection string")
-	// }
-	// store := data.NewStore(connPool)
-
-	// runChiServer(conf, store)
+	runChiServer(conf)
 }
 
 // runChiServer run http server with Chi framework
-// func runChiServer(conf util.Config, store data.Store) {
-// 	server := api.CreateNewServer(conf, store)
+func runChiServer(conf util.Config) {
+	server := api.CreateNewServer(conf)
 
-// 	server.ConfigureCORS()
-// 	server.AddMiddleware()
-// 	server.MountHandlers()
-// 	log.Info().
-// 		Msgf("start listening on the port %s\n", server.Config.HTTPAddressString)
-// 	err := http.ListenAndServe(server.Config.HTTPAddressString, server.Router)
-// 	if err != nil {
-// 		log.Fatal().
-// 			Err(err).
-// 			Str("method", "main").
-// 			Msg("can not start server")
-// 	}
-// }
+	server.ConfigureCORS()
+	server.AddMiddleware()
+	server.MountHandlers()
+	log.Info().
+		Msgf("start listening on the port %s\n", server.Config.WebPort)
+	HTTPAddressString := fmt.Sprintf(":%s", server.Config.WebPort)
+	err := http.ListenAndServe(HTTPAddressString, server.Router)
+	if err != nil {
+		log.Fatal().
+			Err(err).
+			Str("method", "main").
+			Msg("can not start server")
+	}
+}
