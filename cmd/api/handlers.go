@@ -44,7 +44,7 @@ import (
 func Test(w http.ResponseWriter, r *http.Request) {
 	payload := jsonResponse{
 		Error:   false,
-		Massage: "Hello from Broker!",
+		Massage: "Hello from Logger!",
 	}
 
 	_ = writeJSON(w, http.StatusAccepted, payload)
