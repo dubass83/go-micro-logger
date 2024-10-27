@@ -8,24 +8,23 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type Server struct {
-	Router  *chi.Mux
-	MongoDB *mongo.Client
-	Config  util.Config
+	Router     *chi.Mux
+	LogStorage data.LogStorage
+	Config     util.Config
 }
 
 func CreateNewServer(config util.Config) *Server {
-	client, err := data.New(config)
+	logStorage, err := data.NewlogStorage(config)
 	if err != nil {
-		log.Fatal().Err(err).Msg("mongodb connection failed")
+		log.Fatal().Err(err).Msg("failed to create log storage")
 	}
 	s := &Server{
-		Router:  chi.NewRouter(),
-		MongoDB: client,
-		Config:  config,
+		Router:     chi.NewRouter(),
+		LogStorage: logStorage,
+		Config:     config,
 	}
 	return s
 }
