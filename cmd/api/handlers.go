@@ -2,43 +2,15 @@ package api
 
 import (
 	"net/http"
+
+	"github.com/dubass83/go-micro-logger/data"
+	"github.com/rs/zerolog/log"
 )
 
-// api Handler
-// func (s *Server) Authenticate(w http.ResponseWriter, r *http.Request) {
-// 	var requestPayload struct {
-// 		Email    string `json:"email"`
-// 		Password string `json:"password"`
-// 	}
-
-// 	err := readJSON(w, r, &requestPayload)
-// 	if err != nil {
-// 		errorJSON(w, err, http.StatusBadRequest)
-// 		return
-// 	}
-// 	// get user from database by email
-// 	user, err := s.Db.GetUserByEmail(context.Background(), requestPayload.Email)
-// 	if err != nil {
-// 		errorJSON(w, errors.New("invalid username or password"), http.StatusBadRequest)
-// 		return
-// 	}
-// 	// compare password and hash from database
-// 	err = util.CheckPassword(requestPayload.Password, user.Password)
-// 	if err != nil {
-// 		errorJSON(w, errors.New("invalid username or password"), http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	resultStr := fmt.Sprintf("password is valid for user: %s", user.Email)
-
-// 	payload := &jsonResponse{
-// 		Error:   false,
-// 		Massage: resultStr,
-// 		Data:    user,
-// 	}
-// 	log.Debug().Msgf("payload: %+v", payload)
-// 	_ = writeJSON(w, http.StatusAccepted, payload)
-// }
+type JSONPayload struct {
+	Name string `json:"name"`
+	Data string `json:"data"`
+}
 
 // Test api Handler
 func Test(w http.ResponseWriter, r *http.Request) {
@@ -48,4 +20,37 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = writeJSON(w, http.StatusAccepted, payload)
+}
+
+// WriteLog save geting logs from POST request to LogStorage
+func (s *Server) WriteLog(w http.ResponseWriter, r *http.Request) {
+	var requestPayload JSONPayload
+	err := readJSON(w, r, &requestPayload)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to read request payload")
+		err = errorJSON(w, err)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to write error into ")
+		}
+		return
+	}
+
+	entry := data.LogEntry{
+		Name: requestPayload.Name,
+		Data: requestPayload.Data,
+	}
+
+	err = s.LogStorage.Insert(entry)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to insert a log into storage")
+		_ = errorJSON(w, err)
+		return
+	}
+
+	response := jsonResponse{
+		Error:   false,
+		Massage: "successfully incerted a log into storage",
+	}
+
+	_ = writeJSON(w, http.StatusAccepted, response)
 }

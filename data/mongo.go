@@ -11,7 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
-	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
 type Mongo struct {
@@ -28,7 +27,7 @@ func MongoConnect(conf util.Config) (*mongo.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	defer func() {
 		if err = client.Disconnect(ctx); err != nil {
@@ -36,17 +35,18 @@ func MongoConnect(conf util.Config) (*mongo.Client, error) {
 		}
 	}()
 
-	// Call Ping to verify that the deployment is up and the Client was
-	// configured successfully.
-	for i := range 10 {
-		if err = client.Ping(ctx, readpref.Primary()); err != nil {
-			log.Warn().Err(err).Msgf("%d try to connect to mongodb from 10", i+1)
-			time.Sleep(time.Second * 2)
-			continue
-		}
-		return client, nil
-	}
-	return nil, err
+	// // Call Ping to verify that the deployment is up and the Client was
+	// // configured successfully.
+	// for i := range 10 {
+	// 	if err = client.Ping(ctx, readpref.Primary()); err != nil {
+	// 		log.Warn().Err(err).Msgf("%d try to connect to mongodb from 10", i+1)
+	// 		time.Sleep(time.Second * 2)
+	// 		continue
+	// 	}
+	// 	return client, nil
+	// }
+	// return nil, err
+	return client, nil
 }
 
 func (m *Mongo) Insert(entry LogEntry) error {
@@ -59,7 +59,7 @@ func (m *Mongo) Insert(entry LogEntry) error {
 		UpdatedAt: time.Now(),
 	})
 	if err != nil {
-		log.Error().Err(err).Msg("Error inserting into logs")
+		log.Error().Err(err).Msg("error inserting into logs")
 		return err
 	}
 
