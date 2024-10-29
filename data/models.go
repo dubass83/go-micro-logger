@@ -3,7 +3,6 @@ package data
 import (
 	"time"
 
-	"github.com/dubass83/go-micro-logger/util"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
@@ -23,11 +22,8 @@ type LogStorage interface {
 	Update() (*mongo.UpdateResult, error)
 }
 
-func NewlogStorage(conf util.Config) (LogStorage, error) {
-	client, err := MongoConnect(conf)
-	if err != nil {
-		return nil, err
-	}
+func NewMongologStorage(client *mongo.Client) (LogStorage, error) {
+
 	logStorage := &Mongo{
 		Client:   client,
 		LogEntry: LogEntry{},

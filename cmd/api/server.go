@@ -1,8 +1,6 @@
 package api
 
 import (
-	"github.com/rs/zerolog/log"
-
 	"github.com/dubass83/go-micro-logger/data"
 	"github.com/dubass83/go-micro-logger/util"
 	"github.com/go-chi/chi"
@@ -16,11 +14,8 @@ type Server struct {
 	Config     util.Config
 }
 
-func CreateNewServer(config util.Config) *Server {
-	logStorage, err := data.NewlogStorage(config)
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to create log storage")
-	}
+func CreateNewServer(config util.Config, logStorage data.LogStorage) *Server {
+
 	s := &Server{
 		Router:     chi.NewRouter(),
 		LogStorage: logStorage,
