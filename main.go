@@ -55,6 +55,15 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to create log storage")
 	}
 
+	// create new RPC service
+	rpcService := api.CreateNewRPCService(conf, logStorage)
+	err = rpc.Register(rpcService)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to register RPC service")
+	}
+
+	go runRPCService(rpcService)
+
 	// ctx, stop := signal.NotifyContext(context.Background(), interaptSignals...)
 	// defer stop()
 
