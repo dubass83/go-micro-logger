@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
+	"net/rpc"
 	"os"
 	"time"
 
@@ -76,5 +78,33 @@ func runChiServer(server *api.Server) {
 			Err(err).
 			Str("method", "main").
 			Msg("can not start server")
+	}
+}
+
+// runRPCService starts an RPC service on the specified port from the RPCService configuration.
+// It listens for incoming TCP connections and serves them using the rpc.ServeConn method.
+// If there is an error while listening on the port or accepting a connection, it logs the error.
+//
+// Parameters:
+//   - rpcs: A pointer to an api.RPCService which contains the configuration for the RPC service.
+//
+// Returns:
+//   - error: An error if the service fails to start or encounters an issue while running.
+func runRPCService(rpcs *api.RPCService) error {
+	log.Info().Msgf("starting RPC service on port %s", rpcs.Config.RPCPort)
+	listen, err := net.Listen("tcp", "0.0.0.0:"+rpcs.Config.RPCPort)
+	if err != nil {
+		log.Fatal().Err(err).Msgf("failed to listen on port %s", rpcs.Config.RPCPort)
+		return err
+	}
+	defer listen.Close()
+
+	for {
+		conn, err := listen.Accept()
+		if err != nil {
+			log.Error().Err(err).Msg("failed to accept connection")
+			continue
+		}
+		go rpc.ServeConn(conn)
 	}
 }

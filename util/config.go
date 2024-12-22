@@ -10,8 +10,8 @@ type Config struct {
 	Enviroment string `mapstructure:"ENVIROMENT"`
 	MongoURL   string `mapstructure:"MONGO_URL"`
 	WebPort    string `mapstructure:"WEB_PORT"`
-	RpcPort    string `mapstructure:"RPC_PORT"`
-	GRpcPort   string `mapstructure:"GRPC_PORT"`
+	RPCPort    string `mapstructure:"RPC_PORT"`
+	GRPCPort   string `mapstructure:"GRPC_PORT"`
 }
 
 // LoadConfig read configuration from file conf.env or enviroment variables
