@@ -36,3 +36,9 @@ build_logger:
 build_frontend:
 	@echo build front-end...
 	cd front-end && make build
+
+proto:
+	rm -f pb/*
+	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
+      --go-grpc_out=pb --go-grpc_opt=paths=source_relative \
+      proto/*.proto
