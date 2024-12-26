@@ -11,5 +11,6 @@ COPY --from=builder /app/main /app/
 COPY --from=builder /app/conf.env /app/conf.env
 EXPOSE 8080
 EXPOSE 5001
+EXPOSE 9001
 
 CMD [ "/app/main" ]
