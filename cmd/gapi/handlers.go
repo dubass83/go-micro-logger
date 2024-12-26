@@ -9,10 +9,12 @@ import (
 )
 
 func (l *LogServer) WriteLog(ctx context.Context, req *pb.LogRequest) (*pb.LogResponse, error) {
+	input := req.GetLogEntry()
 	entry := data.LogEntry{
-		Name: req.LogEntry.Name,
-		Data: req.LogEntry.Data,
+		Name: input.Name,
+		Data: input.Data,
 	}
+	log.Debug().Msgf("Received a log entry: %+v", entry)
 
 	err := l.LogStorage.Insert(entry)
 	if err != nil {
@@ -20,5 +22,5 @@ func (l *LogServer) WriteLog(ctx context.Context, req *pb.LogRequest) (*pb.LogRe
 		return &pb.LogResponse{Result: "failed to insert a log into storage"}, err
 	}
 
-	return &pb.LogResponse{Result: "Processed payload via gRPC: " + req.LogEntry.Name}, nil
+	return &pb.LogResponse{Result: "Processed payload via gRPC: " + input.Name}, nil
 }
