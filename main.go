@@ -10,12 +10,15 @@ import (
 	"time"
 
 	"github.com/dubass83/go-micro-logger/cmd/api"
+	"github.com/dubass83/go-micro-logger/cmd/gapi"
 	"github.com/dubass83/go-micro-logger/data"
+	"github.com/dubass83/go-micro-logger/pb"
 	"github.com/dubass83/go-micro-logger/util"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"google.golang.org/grpc"
 )
 
 // var interaptSignals = []os.Signal{
@@ -64,6 +67,11 @@ func main() {
 
 	go runRPCService(rpcService)
 
+	// create new gRPC service
+	gRPCService := gapi.CreateNewLogServer(conf, logStorage)
+
+	go runGRPCService(gRPCService)
+
 	// ctx, stop := signal.NotifyContext(context.Background(), interaptSignals...)
 	// defer stop()
 
@@ -99,12 +107,12 @@ func runChiServer(server *api.Server) {
 //
 // Returns:
 //   - error: An error if the service fails to start or encounters an issue while running.
-func runRPCService(rpcs *api.RPCService) error {
+func runRPCService(rpcs *api.RPCService) {
 	log.Info().Msgf("starting RPC service on port %s", rpcs.Config.RPCPort)
-	listen, err := net.Listen("tcp", "0.0.0.0:"+rpcs.Config.RPCPort)
+	listen, err := net.Listen("tcp", ":"+rpcs.Config.RPCPort)
 	if err != nil {
 		log.Fatal().Err(err).Msgf("failed to listen on port %s", rpcs.Config.RPCPort)
-		return err
+		return
 	}
 	defer listen.Close()
 
@@ -115,5 +123,33 @@ func runRPCService(rpcs *api.RPCService) error {
 			continue
 		}
 		go rpc.ServeConn(conn)
+	}
+}
+
+// runGRPCService starts a gRPC service using the provided LogServer configuration.
+// It listens on the port specified in the LogServer configuration, registers the
+// LogService server, and serves incoming gRPC requests.
+//
+// Parameters:
+//
+//	gRPC - A pointer to a LogServer instance containing the gRPC configuration.
+//
+// The function logs the start of the gRPC service, and in case of any errors during
+// listening or serving, it logs the error and terminates the process.
+func runGRPCService(gRPC *gapi.LogServer) {
+	log.Info().Msgf("starting gRPC service on port %s", gRPC.Config.GRPCPort)
+	listen, err := net.Listen("tcp", ":"+gRPC.Config.GRPCPort)
+	if err != nil {
+		log.Fatal().Err(err).Msgf("failed to listen on port %s", gRPC.Config.GRPCPort)
+		return
+	}
+	defer listen.Close()
+
+	s := grpc.NewServer()
+	pb.RegisterLogServiceServer(s, gRPC)
+	log.Info().Msg("gRPC server started and registered LogService")
+	if err := s.Serve(listen); err != nil {
+		log.Fatal().Err(err).Msg("failed to serve gRPC")
+		return
 	}
 }
