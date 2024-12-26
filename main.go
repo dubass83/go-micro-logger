@@ -137,7 +137,7 @@ func runRPCService(rpcs *api.RPCService) {
 // The function logs the start of the gRPC service, and in case of any errors during
 // listening or serving, it logs the error and terminates the process.
 func runGRPCService(gRPC *gapi.LogServer) {
-	log.Info().Msgf("starting gRPC service on port %s", gRPC.Config.GRPCPort)
+	log.Info().Msgf("starting gRPC service on the port %s", gRPC.Config.GRPCPort)
 	listen, err := net.Listen("tcp", ":"+gRPC.Config.GRPCPort)
 	if err != nil {
 		log.Fatal().Err(err).Msgf("failed to listen on port %s", gRPC.Config.GRPCPort)
